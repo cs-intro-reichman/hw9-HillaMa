@@ -58,35 +58,30 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {	
-		if (freeList.getFirst() == null) {
-			return -1;
-		}
-	
 		Node cur = freeList.getFirst();
-		Node prev = null;
-	
-		while (cur != null) {
-			if (cur.block.length >= length) {
-				int allocatedAddress = cur.block.baseAddress;
-				
-				allocatedList.addLast(new MemoryBlock(cur.block.baseAddress, length));
-	
-				if (cur.block.length == length) {
-					if (prev == null) {
-						freeList.remove(cur);
-					} else {
-						prev.next = cur.next;
-					}
-				} else {
-					cur.block.baseAddress += length;
-					cur.block.length -= length;
-				}
-				return allocatedAddress;
-			}
-			prev = cur;
-			cur = cur.next;
-		}
-		return -1;
+    Node prev = null;
+
+    while (cur != null) {
+        if (cur.block.length >= length) {
+            int allocatedAddress = cur.block.baseAddress;
+            allocatedList.addLast(new MemoryBlock(cur.block.baseAddress, length));
+
+            if (cur.block.length == length) {
+                if (prev == null) {
+                    freeList.remove(cur);
+                } else {
+                    prev.next = cur.next;
+                }
+            } else {
+                cur.block.baseAddress += length;
+                cur.block.length -= length;
+            }
+            return allocatedAddress;
+        }
+        prev = cur;
+        cur = cur.next;
+    }
+    return -1;
 	}
 	
 
@@ -103,12 +98,17 @@ public class MemorySpace {
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
 	
+		// בדיקה אם הבלוק כבר שוחרר בעבר
+		if (freeList.indexOf(new MemoryBlock(address, 0)) != -1) {
+			throw new IllegalArgumentException("Block has already been freed");
+		}
+	
 		Node cur = allocatedList.getFirst();
 		Node prev = null;
 	
 		while (cur != null) {
 			if (cur.block.baseAddress == address) {
-				freeList.addLast(cur.block);
+				freeList.addLast(new MemoryBlock(cur.block.baseAddress, cur.block.length));
 	
 				if (prev == null) {
 					allocatedList.remove(cur);
@@ -120,16 +120,7 @@ public class MemorySpace {
 			prev = cur;
 			cur = cur.next;
 		}
-	
 		throw new IllegalArgumentException("index must be between 0 and size");
-	}
-	
-	/**
-	 * A textual representation of the free list and the allocated list of this memory space, 
-	 * for debugging purposes.
-	 */
-	public String toString() {
-		return freeList.toString() + "\n" + allocatedList.toString();		
 	}
 	
 	/**ד
@@ -143,11 +134,11 @@ public class MemorySpace {
 		}
 	
 		Node cur = freeList.getFirst();
-	
+		
 		while (cur != null && cur.next != null) {
 			if (cur.block.baseAddress + cur.block.length == cur.next.block.baseAddress) {
 				cur.block.length += cur.next.block.length;
-				freeList.remove(cur.next);
+				freeList.remove(cur.next); 
 			} else {
 				cur = cur.next;
 			}

@@ -160,6 +160,10 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public MemoryBlock getBlock(int index) {
+		if (index < 0 || index >= size) {
+			throw new IllegalArgumentException("index must be between 0 and size");
+		}
+
 		Node cur = first;
 		int curIndex = 0;
 		while(curIndex != index) {
@@ -196,8 +200,11 @@ public class LinkedList {
 	 *        the node that will be removed from this list
 	 */
 	public void remove(Node node) {
-		if (node == null || first == null) {
-			throw new IllegalArgumentException("Node is null or list is empty");
+		if (node == null) {
+			throw new NullPointerException("Node cannot be null");
+		}
+		if (first == null) {
+			throw new IllegalArgumentException("List is empty");
 		}
 
 		if(node == first) {
@@ -231,12 +238,10 @@ public class LinkedList {
 	 */
 	public void remove(int index) {
 		if (index < 0 || index >= size) {
-			throw new IllegalArgumentException(
-					"index must be between 0 and size");
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-
 		if (first == null) {
-			throw new IllegalArgumentException("List is empty");
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
 
 		if(index == 0) {
@@ -311,7 +316,16 @@ public class LinkedList {
 	 * A textual representation of this list, for debugging.
 	 */
 	public String toString() {
-		//// Replace the following statement with your code
-		return "";
+		if (first == null) {
+			return "Empty list";
+		}
+		
+		Node cur = first;
+		String toString = "";
+		while(cur != null) {
+			toString = toString + " -> " + cur;
+			cur = cur.next;
+		}
+		return toString;
 	}
 }

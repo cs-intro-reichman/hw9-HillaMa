@@ -58,67 +58,29 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {	
-		if (freeList.getSize() == 0) {
+		if (freeList.getFirst() == null) {
 			return -1;
 		}
-
-		Node freeListCur = freeList.getFirst();
-		int freeListcurIndex = 0;
-		int memAdd = 0;
-
-		if(freeListCur.block.length == length) {
-			memAdd = freeListCur.block.baseAddress;
-
-			allocatedList.addLast(freeListCur.block);
-			freeList.remove(freeListCur.block);
-
-			return memAdd;
+	
+		Node cur = freeList.getFirst();
+		while (cur != null) {
+			if (cur.block.length >= length) {
+				int allocatedAddress = cur.block.baseAddress;
+				allocatedList.addLast(new MemoryBlock(cur.block.baseAddress, length));
+	
+				if (cur.block.length == length) {
+					freeList.remove(cur);
+				} else {
+					cur.block.baseAddress += length;
+					cur.block.length -= length;
+				}
+				return allocatedAddress;
+			}
+			cur = cur.next;
 		}
-		else if(freeListCur.block.length > length) {
-			memAdd = freeListCur.block.baseAddress;
-
-			MemoryBlock updatedAlloBlock = new MemoryBlock(freeListCur.block.baseAddress, length);
-			allocatedList.addLast(updatedAlloBlock);
-
-			MemoryBlock updatedFreeBlock = new MemoryBlock(freeListCur.block.baseAddress + length, freeListCur.block.length - length);
-			freeList.add(freeListcurIndex, updatedFreeBlock);
-			freeList.remove(freeListcurIndex + 1);
-
-			return memAdd;
-		}
-
-
-		while(freeListCur.next != null && freeListCur.next.block.length < length) {
-			freeListCur = freeListCur.next;
-			freeListcurIndex++;
-		}
-
-		if(freeListCur.next == null) {
-			return -1;
-		}
-
-		if(freeListCur.next.block.length == length) {
-			memAdd = freeListCur.next.block.baseAddress;
-
-			allocatedList.addLast(freeListCur.next.block);
-			freeList.remove(freeListCur.next.block);
-
-			return memAdd;
-		}
-
-		else {
-			memAdd = freeListCur.next.block.baseAddress;
-
-			MemoryBlock updatedAlloBlock = new MemoryBlock(freeListCur.next.block.baseAddress, length);
-			allocatedList.addLast(updatedAlloBlock);
-
-			MemoryBlock updatedFreeBlock = new MemoryBlock(freeListCur.next.block.baseAddress + length, freeListCur.next.block.length - length);
-			freeList.add(freeListcurIndex + 1, updatedFreeBlock);
-			freeList.remove(freeListcurIndex + 2);
-
-			return memAdd;
-		}
+		return -1;
 	}
+	
 
 	/**
 	 * Frees the memory block whose base address equals the given address.
@@ -129,28 +91,20 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		if(allocatedList.getFirst() == null) {
-			throw new IllegalArgumentException("List is empty");
+		if (allocatedList.getFirst() == null) {
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-		else {
-			Node alloListCur = allocatedList.getFirst();
-
-			if(alloListCur.block.baseAddress == address) {
-				freeList.addLast(alloListCur.block);
-				allocatedList.remove(alloListCur.block);
+	
+		Node cur = allocatedList.getFirst();
+		while (cur != null) {
+			if (cur.block.baseAddress == address) {
+				freeList.addLast(cur.block);
+				allocatedList.remove(cur);
+				return;
 			}
-
-			else {
-				while(alloListCur.next != null && alloListCur.next.block.baseAddress != address) {
-					alloListCur = alloListCur.next;
-				}
-
-				if(alloListCur.next != null) {
-					freeList.addLast(alloListCur.next.block);
-					allocatedList.remove(alloListCur.next);
-				}
-			}
+			cur = cur.next;
 		}
+		throw new IllegalArgumentException("Block not found");
 	}
 	
 	/**
@@ -161,45 +115,24 @@ public class MemorySpace {
 		return freeList.toString() + "\n" + allocatedList.toString();		
 	}
 	
-	/**
+	/**ד
 	 * Performs defragmantation of this memory space.
 	 * Normally, called by malloc, when it fails to find a memory block of the requested size.
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		if(freeList.getFirst() == null) {
-			throw new IllegalArgumentException("List is empty");
-		}
-		else {
-			Node curCheked = freeList.getFirst();
-			Node curRunning = curCheked.next;
-			int checkedIndex = 0;
-			int runningIndex = 1;
+		if (freeList.getFirst() == null) {
+            return;
+        }
 
-			for(;curCheked.next != null; curCheked = curCheked.next) {
-				for(;curRunning != null; curRunning = curRunning.next) {
-					if(curRunning.block.baseAddress == curCheked.block.baseAddress + curCheked.block.length) {
-						freeList.add(checkedIndex, new MemoryBlock(curCheked.block.baseAddress, curCheked.block.length + curRunning.block.length));
-						
-						freeList.remove(runningIndex + 1);
-                    	freeList.remove(checkedIndex + 1);
-
-                    	curCheked = freeList.getFirst();
-                    	for (int i = 0; i < checkedIndex; i++) {
-                        	curCheked = curCheked.next;
-                    	}
-                    	curRunning = curCheked.next;
-                    	runningIndex = checkedIndex + 1;
-                	} 		
-					else {
-                    	curRunning = curRunning.next;
-                    	runningIndex++;
-                	}	
-				}
-				checkedIndex++;
-				runningIndex = checkedIndex + 1;
-				curRunning = curCheked.next.next;
-			}
-		}
+        Node cur = freeList.getFirst();
+        while (cur != null && cur.next != null) {
+            if (cur.block.baseAddress + cur.block.length == cur.next.block.baseAddress) {
+                cur.block.length += cur.next.block.length;
+                freeList.remove(cur.next);
+            } else {
+                cur = cur.next;
+            }
+        }
 	}
 }

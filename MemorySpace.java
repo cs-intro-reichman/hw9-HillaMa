@@ -57,9 +57,67 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
+	public int malloc(int length) {	
+		if (freeList.getSize() == 0) {
+			return -1;
+		}
+
+		Node freeListCur = freeList.getFirst();
+		int freeListcurIndex = 0;
+		int memAdd = 0;
+
+		if(freeListCur.block.length == length) {
+			memAdd = freeListCur.block.baseAddress;
+
+			allocatedList.addLast(freeListCur.block);
+			freeList.remove(freeListCur.block);
+
+			return memAdd;
+		}
+		else if(freeListCur.block.length > length) {
+			memAdd = freeListCur.block.baseAddress;
+
+			MemoryBlock updatedAlloBlock = new MemoryBlock(freeListCur.block.baseAddress, length);
+			allocatedList.addLast(updatedAlloBlock);
+
+			MemoryBlock updatedFreeBlock = new MemoryBlock(freeListCur.block.baseAddress + length, freeListCur.block.length - length);
+			freeList.add(freeListcurIndex, updatedFreeBlock);
+			freeList.remove(freeListcurIndex + 1);
+
+			return memAdd;
+		}
+
+
+		while(freeListCur.next != null && freeListCur.next.block.length < length) {
+			freeListCur = freeListCur.next;
+			freeListcurIndex++;
+		}
+
+		if(freeListCur.next == null) {
+			return -1;
+		}
+
+		if(freeListCur.next.block.length == length) {
+			memAdd = freeListCur.next.block.baseAddress;
+
+			allocatedList.addLast(freeListCur.next.block);
+			freeList.remove(freeListCur.next.block);
+
+			return memAdd;
+		}
+
+		else {
+			memAdd = freeListCur.next.block.baseAddress;
+
+			MemoryBlock updatedAlloBlock = new MemoryBlock(freeListCur.next.block.baseAddress, length);
+			allocatedList.addLast(updatedAlloBlock);
+
+			MemoryBlock updatedFreeBlock = new MemoryBlock(freeListCur.next.block.baseAddress + length, freeListCur.next.block.length - length);
+			freeList.add(freeListcurIndex + 1, updatedFreeBlock);
+			freeList.remove(freeListcurIndex + 2);
+
+			return memAdd;
+		}
 	}
 
 	/**
@@ -71,7 +129,28 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		if(allocatedList.getFirst() == null) {
+			throw new IllegalArgumentException("List is empty");
+		}
+		else {
+			Node alloListCur = allocatedList.getFirst();
+
+			if(alloListCur.block.baseAddress == address) {
+				freeList.addLast(alloListCur.block);
+				allocatedList.remove(alloListCur.block);
+			}
+
+			else {
+				while(alloListCur.next != null && alloListCur.next.block.baseAddress != address) {
+					alloListCur = alloListCur.next;
+				}
+
+				if(alloListCur.next != null) {
+					freeList.addLast(alloListCur.next.block);
+					allocatedList.remove(alloListCur.next);
+				}
+			}
+		}
 	}
 	
 	/**
@@ -88,7 +167,39 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		/// TODO: Implement defrag test
-		//// Write your code here
+		if(freeList.getFirst() == null) {
+			throw new IllegalArgumentException("List is empty");
+		}
+		else {
+			Node curCheked = freeList.getFirst();
+			Node curRunning = curCheked.next;
+			int checkedIndex = 0;
+			int runningIndex = 1;
+
+			for(;curCheked.next != null; curCheked = curCheked.next) {
+				for(;curRunning != null; curRunning = curRunning.next) {
+					if(curRunning.block.baseAddress == curCheked.block.baseAddress + curCheked.block.length) {
+						freeList.add(checkedIndex, new MemoryBlock(curCheked.block.baseAddress, curCheked.block.length + curRunning.block.length));
+						
+						freeList.remove(runningIndex + 1);
+                    	freeList.remove(checkedIndex + 1);
+
+                    	curCheked = freeList.getFirst();
+                    	for (int i = 0; i < checkedIndex; i++) {
+                        	curCheked = curCheked.next;
+                    	}
+                    	curRunning = curCheked.next;
+                    	runningIndex = checkedIndex + 1;
+                	} 		
+					else {
+                    	curRunning = curRunning.next;
+                    	runningIndex++;
+                	}	
+				}
+				checkedIndex++;
+				runningIndex = checkedIndex + 1;
+				curRunning = curCheked.next.next;
+			}
+		}
 	}
 }

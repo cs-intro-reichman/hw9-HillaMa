@@ -54,8 +54,11 @@ public class LinkedList {
 			throw new IllegalArgumentException(
 					"index must be between 0 and size");
 		}
-		//// Replace the following statement with your code
-		return null;
+		Node cur = first;
+		for(int i = 0; i < index; i++) {
+			cur = cur.next;
+		}
+		return cur;
 	}
 	
 	/**
@@ -78,7 +81,33 @@ public class LinkedList {
 	 *         if index is negative or greater than the list's size
 	 */
 	public void add(int index, MemoryBlock block) {
-		//// Write your code here
+		if (index < 0 || index > size) {
+			throw new IllegalArgumentException(
+					"index must be between 0 and size");
+		}
+		Node newNode = new Node(block);
+		if(index == 0) {
+			newNode.next = first;
+			first = newNode;
+			if(size == 0) {
+				last = newNode;
+			}
+		}
+		else if(index == size) {
+			last.next = newNode;
+			last = newNode;
+		}
+		else {
+			Node cur = first;
+			int curIndex = 0;
+			while(curIndex != index - 1) {
+				cur = cur.next;
+				curIndex++;
+			}
+			newNode.next = cur.next;
+			cur.next = newNode;
+		}
+		size++;
 	}
 
 	/**
@@ -89,7 +118,16 @@ public class LinkedList {
 	 *        the given memory block
 	 */
 	public void addLast(MemoryBlock block) {
-		//// Write your code here
+		Node newNode = new Node(block);
+		if(first == null) {
+			first = newNode;
+			last = newNode;
+		}
+		else{
+			last.next = newNode;
+			last = newNode;
+		}
+		size++;
 	}
 	
 	/**
@@ -100,7 +138,16 @@ public class LinkedList {
 	 *        the given memory block
 	 */
 	public void addFirst(MemoryBlock block) {
-		//// Write your code here
+		Node newNode = new Node(block);
+		if(first == null) {
+			first = newNode;
+			last = newNode;
+		}
+		else{
+			newNode.next = first;
+			first = newNode;
+		}
+		size++;
 	}
 
 	/**
@@ -113,8 +160,13 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public MemoryBlock getBlock(int index) {
-		//// Replace the following statement with your code
-		return null;
+		Node cur = first;
+		int curIndex = 0;
+		while(curIndex != index) {
+			cur = cur.next;
+			curIndex++;
+		}
+		return cur.block;
 	}	
 
 	/**
@@ -125,7 +177,15 @@ public class LinkedList {
 	 * @return the index of the block, or -1 if the block is not in this list
 	 */
 	public int indexOf(MemoryBlock block) {
-		//// Replace the following statement with your code
+		Node cur = first;
+		int curIndex = 0;
+		while(cur != null) {
+			if(cur.block.equals(block)) {
+				return curIndex;
+			}
+			cur = cur.next;
+			curIndex++;
+		}
 		return -1;
 	}
 
@@ -136,7 +196,30 @@ public class LinkedList {
 	 *        the node that will be removed from this list
 	 */
 	public void remove(Node node) {
-		//// Write your code here
+		if (node == null || first == null) {
+			throw new IllegalArgumentException("Node is null or list is empty");
+		}
+
+		if(node == first) {
+			first = first.next;
+			if (first == null) { 
+				last = null;
+			}
+			size--;
+		}
+		else{
+			Node cur = first;
+			while(cur != null && cur.next != node) {
+				cur = cur.next;
+			}
+			if(cur != null && cur.next == node) {
+				cur.next = node.next;
+				if(node == last) {
+					last = cur;
+				}
+				size--;
+			}
+		}
 	}
 
 	/**
@@ -147,7 +230,37 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public void remove(int index) {
-		//// Write your code here
+		if (index < 0 || index >= size) {
+			throw new IllegalArgumentException(
+					"index must be between 0 and size");
+		}
+
+		if (first == null) {
+			throw new IllegalArgumentException("List is empty");
+		}
+
+		if(index == 0) {
+			first = first.next;
+			if (first == null) {
+				last = null;
+			}
+		}
+		else {
+			Node cur = first;
+			int curIndex = 0;
+
+			while(curIndex < index - 1) {
+				cur = cur.next;
+				curIndex++;
+			}
+
+			if(index == size - 1) {
+				last = cur;
+			}
+
+			cur.next = cur.next.next;
+		}
+		size--;
 	}
 
 	/**
@@ -158,7 +271,33 @@ public class LinkedList {
 	 *         if the given memory block is not in this list
 	 */
 	public void remove(MemoryBlock block) {
-		//// Write your code here
+		if (first == null) {
+			throw new IllegalArgumentException("List is empty");
+		}
+
+		if(first.block.equals(block)) {
+			first = first.next;
+			if (first == null) {
+				last = null;
+			}
+		}
+		else {
+			Node cur = first;
+			while(cur != null && !cur.next.block.equals(block)) {
+				cur = cur.next;
+			}
+
+			if (cur.next == null) { 
+				throw new IllegalArgumentException("Block not found in the list");
+			}
+
+			if(cur.next == last) {
+				last = cur;
+			}
+
+			cur.next = cur.next.next;
+		}
+		size--;
 	}	
 
 	/**

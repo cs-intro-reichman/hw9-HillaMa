@@ -240,31 +240,29 @@ public class LinkedList {
 		if (index < 0 || index >= size) {
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
+	
 		if (first == null) {
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-
-		if(index == 0) {
+	
+		if (index == 0) {
 			first = first.next;
-			if (first == null) {
-				last = null;
-			}
+			if (first == null) last = null;
+			size--;
+			return;
 		}
-		else {
-			Node cur = first;
-			int curIndex = 0;
-
-			while(curIndex < index - 1) {
-				cur = cur.next;
-				curIndex++;
-			}
-
-			if(index == size - 1) {
-				last = cur;
-			}
-
-			cur.next = cur.next.next;
+	
+		Node cur = first;
+		for (int i = 0; i < index - 1; i++) {
+			cur = cur.next;
 		}
+	
+		if (cur.next == null) {
+			throw new IllegalArgumentException("index must be between 0 and size");
+		}
+	
+		cur.next = cur.next.next;
+		if (cur.next == null) last = cur;
 		size--;
 	}
 
@@ -277,31 +275,27 @@ public class LinkedList {
 	 */
 	public void remove(MemoryBlock block) {
 		if (first == null) {
-			throw new IllegalArgumentException("List is empty");
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-
-		if(first.block.equals(block)) {
+	
+		if (first.block.equals(block)) {
 			first = first.next;
-			if (first == null) {
-				last = null;
-			}
+			if (first == null) last = null;
+			size--;
+			return;
 		}
-		else {
-			Node cur = first;
-			while(cur != null && !cur.next.block.equals(block)) {
-				cur = cur.next;
-			}
-
-			if (cur.next == null) { 
-				throw new IllegalArgumentException("Block not found in the list");
-			}
-
-			if(cur.next == last) {
-				last = cur;
-			}
-
-			cur.next = cur.next.next;
+	
+		Node cur = first;
+		while (cur.next != null && !cur.next.block.equals(block)) {
+			cur = cur.next;
 		}
+	
+		if (cur.next == null) {
+			throw new IllegalArgumentException("index must be between 0 and size");
+		}
+	
+		cur.next = cur.next.next;
+		if (cur.next == null) last = cur;
 		size--;
 	}	
 

@@ -59,17 +59,13 @@ public class MemorySpace {
 	 */
 	public int malloc(int length) {	
 		if (freeList.getFirst() == null) {
-			return -1; 
+			return -1;
 		}
 	
 		Node cur = freeList.getFirst();
 		Node prev = null;
 	
 		while (cur != null) {
-			if (cur.block == null) {
-				throw new IllegalStateException("MemoryBlock is null");
-			}
-	
 			if (cur.block.length >= length) {
 				int allocatedAddress = cur.block.baseAddress;
 				
@@ -87,11 +83,9 @@ public class MemorySpace {
 				}
 				return allocatedAddress;
 			}
-	
 			prev = cur;
 			cur = cur.next;
 		}
-	
 		return -1;
 	}
 	
@@ -115,13 +109,12 @@ public class MemorySpace {
 		while (cur != null) {
 			if (cur.block.baseAddress == address) {
 				freeList.addLast(cur.block);
-				
+	
 				if (prev == null) {
 					allocatedList.remove(cur);
 				} else {
 					prev.next = cur.next;
 				}
-				
 				return;
 			}
 			prev = cur;
@@ -146,7 +139,7 @@ public class MemorySpace {
 	 */
 	public void defrag() {
 		if (freeList.getFirst() == null || freeList.getFirst().next == null) {
-			return; 
+			return;
 		}
 	
 		Node cur = freeList.getFirst();
@@ -156,7 +149,7 @@ public class MemorySpace {
 				cur.block.length += cur.next.block.length;
 				freeList.remove(cur.next);
 			} else {
-				cur = cur.next; 
+				cur = cur.next;
 			}
 		}
 	}

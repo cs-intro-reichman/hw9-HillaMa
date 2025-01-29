@@ -310,16 +310,12 @@ public class LinkedList {
 	 * A textual representation of this list, for debugging.
 	 */
 	public String toString() {
-		if (first == null) {
-			return "Empty list";
+		String s = "";
+		Node current = first;
+		while (current != null) {
+			s = s + current.block + " ";
+			current = current.next;
 		}
-		
-		Node cur = first;
-		String toString = "";
-		while(cur != null) {
-			toString = toString + " -> " + cur;
-			cur = cur.next;
-		}
-		return toString;
+		return s;
 	}
 }
